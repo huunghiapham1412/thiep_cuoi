@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thiệp Mời Cưới | Tuấn Kiệt & Diệu Linh</title>
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts for elegant typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Quicksand:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* Custom styles to complement Tailwind */
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #FDF8F5;
+            /* A soft, warm background color */
+            color: #4A4A4A;
+        }
+
+        .font-serif-display {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* --- Gate Animation --- */
+        #gate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 100;
+            display: flex;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .gate-door {
+            width: 50%;
+            height: 100%;
+            background-color: #A63A3A;
+            background-image: url('./images/background.png');
+            transition: transform 1.5s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        #gate-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 101;
+            transition: opacity 0.8s ease;
+            pointer-events: none;
+        }
+
+        #gate-circle {
+            width: 180px;
+            height: 180px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            border: 4px solid #A63A3A;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        }
+
+        #gate.opened .gate-left {
+            transform: translateX(-100%);
+        }
+
+        #gate.opened .gate-right {
+            transform: translateX(100%);
+        }
+
+        #gate.opened #gate-overlay {
+            opacity: 0;
+        }
+
+        /* --- Main Content Styling --- */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        #main-content {
+            opacity: 0;
+            transition: opacity 1s ease 1s;
+        }
+
+        /* --- Fan Gallery Styles --- */
+        #fan-gallery-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            /* Control max width */
+            height: 250px;
+            margin: 3rem auto;
+        }
+
+        .fan-gallery-img {
+            position: absolute;
+            width: 120px;
+            height: 160px;
+            border-radius: 8px;
+            /* Rounded corners instead of circle */
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+
+            /* Position images at the bottom center to create the fan pivot */
+            left: 50%;
+            bottom: 0;
+            transform-origin: bottom center;
+
+            /* Use a CSS variable for rotation, set by JS */
+            transform: translateX(-50%) rotate(var(--rotation));
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .fan-gallery-img:hover {
+            /* On hover, lift the image up and scale it, keeping its rotation */
+            transform: translateX(-50%) translateY(-25px) scale(1.15) rotate(var(--rotation));
+            z-index: 10;
+        }
+
+        /* --- Lightbox Modal for All Galleries --- */
+        #lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        #lightbox.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #lightbox-img {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+
+        #lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 3rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .lightbox-trigger {
+            cursor: pointer;
+        }
+
+        /* Other styles... */
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.5rem;
+            background-color: #FFFFFF;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #A63A3A;
+            box-shadow: 0 0 0 2px rgba(166, 58, 58, 0.2);
+        }
+
+        #feedback-modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #music-player {
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        #music-player:hover {
+            transform: scale(1.1);
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .animate-from-left {
+            transform: translateX(-50px);
+        }
+
+        .animate-from-right {
+            transform: translateX(50px);
+        }
+
+        .animate-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    </style>
+</head>
+
+<body class="overflow-x-hidden">
+
+    <!-- 1. The Opening Gate -->
+    <div id="gate">
+        <div class="gate-door gate-left"></div>
+        <div class="gate-door gate-right"></div>
+        <div id="gate-overlay">
+            <div id="gate-circle">
+                <div class="font-serif-display text-7xl text-red-800">囍</div>
+            </div>
+            <div class="text-white text-lg mt-6 font-serif-display">Chạm để mở thiệp</div>
+        </div>
+    </div>
+
+    <!-- Music and Player -->
+    <audio id="wedding-music" loop>
+        <source src="./music/nhac nen.mp3" type="audio/mpeg">
+        Trình duyệt của bạn không hỗ trợ phát âm thanh.
+    </audio>
+    <button id="music-player"
+        class="fixed bottom-5 right-5 z-50 bg-red-800 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
+        <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+        </svg>
+    </button>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox">
+        <span id="lightbox-close">&times;</span>
+        <img id="lightbox-img" src="" alt="Ảnh phóng to">
+    </div>
+
+    <!-- 2. Main Invitation Content -->
+    <div id="main-content" class="max-w-2xl mx-auto bg-white shadow-lg rounded-b-lg">
+
+        <!-- Introduction Section -->
+        <section id="intro" class="text-center p-6 md:p-10">
+            <h2 class="font-serif-display text-3xl md:text-4xl text-gray-700">Trân Trọng Kính Mời</h2>
+            <p class="mt-2 text-gray-500">Đến dự buổi tiệc chung vui cùng gia đình chúng tôi</p>
+            <div class="my-8">
+                <img src="./images/anh lon nhat.jpg" alt="Ảnh cưới của Tuấn Kiệt và Diệu Linh"
+                    class="w-full max-w-sm mx-auto rounded-lg shadow-xl">
+            </div>
+            <h1 class="font-serif-display text-4xl md:text-5xl text-red-800">Tuấn Kiệt & Diệu Linh</h1>
+            <p class="mt-4 text-lg text-gray-600">Sẽ kết hôn vào lúc 10:00, Thứ Năm</p>
+            <p class="font-serif-display text-3xl mt-2 text-gray-800">15 . 07 . 2025</p>
+        </section>
+
+        <!-- Family Information -->
+        <section class="bg-gray-50 p-6 md:p-10 text-center">
+            <div
+                class="w-20 h-20 mx-auto mb-4 text-5xl text-red-800 flex items-center justify-center animate-on-scroll">
+                囍</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="animate-on-scroll animate-from-left">
+                    <h3 class="font-serif-display text-2xl text-gray-800">Nhà Trai</h3>
+                    <p class="mt-2 text-gray-600">Ông <span class="font-bold">Cấn Văn An</span></p>
+                    <p class="text-gray-600">Bà <span class="font-bold">Nguyễn Thị Hà</span></p>
+                    <p class="mt-1 text-sm text-gray-500">Quận 8, Hồ Chí Minh</p>
+                </div>
+                <div class="animate-on-scroll animate-from-right">
+                    <h3 class="font-serif-display text-2xl text-gray-800">Nhà Gái</h3>
+                    <p class="mt-2 text-gray-600">Ông <span class="font-bold">Cấn Văn An</span></p>
+                    <p class="text-gray-600">Bà <span class="font-bold">Nguyễn Thị Hải</span></p>
+                    <p class="mt-1 text-sm text-gray-500">Quận 8, Hồ Chí Minh</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fan Photo Gallery Section -->
+        <section id="moments" class="p-6 md:p-10 text-center bg-white">
+            <h2 class="font-serif-display text-3xl text-gray-700 animate-on-scroll">Khoảnh Khắc Đáng Nhớ</h2>
+            <div id="fan-gallery-container" class="animate-on-scroll">
+                <img src="./images/anh 1.jpg" alt="Khoảnh khắc 1" class="fan-gallery-img lightbox-trigger">
+                <img src="./images/anh 2.jpeg" alt="Khoảnh khắc 2" class="fan-gallery-img lightbox-trigger">
+                <img src="./images/anh 3.jpg" alt="Khoảnh khắc 3" class="fan-gallery-img lightbox-trigger">
+                <img src="./images/anh 4.jpg" alt="Khoảnh khắc 4" class="fan-gallery-img lightbox-trigger">
+                <img src="./images/anh 5.jpg" alt="Khoảnh khắc 5" class="fan-gallery-img lightbox-trigger">
+                <img src="./images/anh 6.jpg" alt="Khoảnh khắc 6" class="fan-gallery-img lightbox-trigger">
+            </div>
+        </section>
+
+        <!-- Event Details & Calendar -->
+        <!-- sửa thông tin và map -->
+        <section id="details" class="bg-gray-50 p-6 md:p-10 text-center">
+            <h2 class="font-serif-display text-3xl text-gray-700 animate-on-scroll">Thời Gian & Địa Điểm</h2>
+            <div class="mt-8 p-6 border-2 border-dashed border-red-200 rounded-lg animate-on-scroll">
+                <h3 class="font-serif-display text-2xl text-red-800">Tiệc Cưới</h3>
+                <p class="mt-2 text-lg">18:00 | Thứ 5, ngày 15 tháng 7 năm 2025</p>
+                <p class="text-gray-500">(Tức ngày 18 tháng 01 năm Ất Tỵ)</p>
+                <p class="mt-4 font-bold text-xl">THE ADORA CENTER</p>
+                <p class="text-gray-600">xxx, Phường xxx, Quận xxx, Hồ Chí Minh</p>
+                <!-- map or google map -->
+                <a href="https://byvn.net/X3Er" target="_blank"
+                    class="inline-block mt-4 bg-red-800 text-white py-2 px-6 rounded-lg hover:bg-red-900 transition-colors">
+                    Xem Chỉ Đường
+                </a>
+            </div>
+
+            <div id="calendar" class="mt-10 max-w-sm mx-auto animate-on-scroll">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-serif-display text-xl">Tháng 07, 2025</h3>
+                </div>
+                <div class="grid grid-cols-7 gap-2 text-center text-sm"></div>
+            </div>
+        </section>
+
+        <!-- RSVP Form Section -->
+        <section id="rsvp" class="p-6 md:p-10 text-center">
+            <h2 class="font-serif-display text-3xl text-gray-700 animate-on-scroll">Xác Nhận Tham Dự</h2>
+            <p class="mt-2 text-gray-500 animate-on-scroll">Sự hiện diện của bạn là niềm vinh hạnh cho gia đình chúng
+                tôi.<br>Vui lòng xác nhận trước ngày 10.07.2025</p>
+            <form id="rsvp-form" class="mt-8 max-w-md mx-auto space-y-4 text-left animate-on-scroll">
+                <div>
+                    <label for="name" class="font-semibold text-gray-700">Tên của bạn là?</label>
+                    <input type="text" id="name" name="name" class="form-input mt-1" required>
+                </div>
+                <div>
+                    <label for="attending" class="font-semibold text-gray-700">Bạn có tham dự không?</label>
+                    <select id="attending" name="attending" class="form-select mt-1" required>
+                        <option value="" disabled selected>Vui lòng chọn...</option>
+                        <option value="Có">Có, tôi sẽ đến chung vui</option>
+                        <option value="Không">Rất tiếc, tôi không thể tham dự</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="message" class="font-semibold text-gray-700">Gửi lời chúc</label>
+                    <textarea id="message" name="message" rows="4" class="form-textarea mt-1"
+                        placeholder="Lời chúc của bạn..."></textarea>
+                </div>
+                <button type="submit"
+                    class="w-full bg-red-800 text-white py-3 rounded-lg hover:bg-red-900 transition-colors font-bold text-lg">
+                    Gửi Ngay
+                </button>
+            </form>
+        </section>
+
+        <!-- Wedding Album Section -->
+        <section id="gallery" class="bg-gray-50 p-6 md:p-10 text-center">
+            <h2 class="font-serif-display text-3xl text-gray-700 animate-on-scroll">Album Hình Cưới</h2>
+            <!-- UPDATED: Changed grid to grid-cols-2 and applied animations to individual images -->
+            <div class="mt-8 grid grid-cols-2 gap-4">
+                <img src="./images/anh doc 1.jpg" alt="Ảnh cưới 1"
+                    class="rounded-lg shadow-md w-full h-full object-cover lightbox-trigger animate-on-scroll animate-from-left">
+                <img src="./images/anh doc 2.jpg" alt="Ảnh cưới 2"
+                    class="rounded-lg shadow-md w-full h-full object-cover lightbox-trigger animate-on-scroll animate-from-right">
+                <img src="./images/anh doc 3.jpg" alt="Ảnh cưới 3"
+                    class="rounded-lg shadow-md w-full h-full object-cover lightbox-trigger animate-on-scroll animate-from-left">
+                <img src="./images/anh doc 4.webp" alt="Ảnh cưới 4"
+                    class="rounded-lg shadow-md w-full h-full object-cover lightbox-trigger animate-on-scroll animate-from-right">
+                <img src="./images/anh doc 6.jpg!w700wp" alt="Ảnh cưới 5"
+                    class="rounded-lg shadow-md w-full h-full object-cover lightbox-trigger animate-on-scroll animate-from-left">
+                <img src="./images/anh dọc 5.jpg" alt="Ảnh cưới 6"
+                    class="rounded-lg shadow-md w-full h-full object-cover lightbox-trigger animate-on-scroll animate-from-right">
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center p-10 bg-gray-800 text-white">
+            <h2 class="font-serif-display text-4xl">Thank You</h2>
+            <p class="mt-2 text-gray-300">Rất hân hạnh được đón tiếp!</p>
+            <div class="mt-8 pt-6 border-t border-gray-700 text-xs text-gray-400">
+                <p>Made by Huu Nghia Pham</p>
+                <p class="mt-1">© 2025 Voices of Revolution. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Feedback Modal for Form Submission -->
+    <div id="feedback-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-sm text-center">
+            <h3 class="font-serif-display text-2xl text-red-800">Đã Gửi Thành Công!</h3>
+            <p class="mt-2 text-gray-600">Cảm ơn bạn đã gửi phản hồi. Hẹn gặp bạn tại buổi tiệc!</p>
+            <button id="close-modal-btn"
+                class="mt-6 bg-red-800 text-white py-2 px-6 rounded-lg hover:bg-red-900 transition-colors">Đóng</button>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Gate Logic ---
+            const gate = document.getElementById('gate');
+            const mainContent = document.getElementById('main-content');
+            const music = document.getElementById('wedding-music');
+
+            gate.addEventListener('click', () => {
+                gate.classList.add('opened');
+                mainContent.style.opacity = '1';
+                music.play().catch(error => console.log("Autoplay was prevented."));
+                setTimeout(() => {
+                    gate.style.display = 'none';
+                }, 2000);
+            }, { once: true });
+
+            // --- Music Player Logic ---
+            const musicPlayer = document.getElementById('music-player');
+            const playIcon = document.getElementById('play-icon');
+            const pauseIcon = document.getElementById('pause-icon');
+
+            musicPlayer.addEventListener('click', () => {
+                if (music.paused) {
+                    music.play();
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                } else {
+                    music.pause();
+                    playIcon.classList.remove('hidden');
+                    pauseIcon.classList.add('hidden');
+                }
+            });
+
+            // --- Fan Gallery Logic ---
+            function arrangeImagesInFan() {
+                const galleryContainer = document.getElementById('fan-gallery-container');
+                const galleryImages = galleryContainer.querySelectorAll('.fan-gallery-img');
+                const totalImages = galleryImages.length;
+                const fanAngle = 80; // Total angle of the fan in degrees
+                const startAngle = -fanAngle / 2;
+                const angleIncrement = totalImages > 1 ? fanAngle / (totalImages - 1) : 0;
+
+                galleryImages.forEach((img, index) => {
+                    const rotateAngle = startAngle + index * angleIncrement;
+                    img.style.setProperty('--rotation', `${rotateAngle}deg`);
+                });
+            }
+            arrangeImagesInFan();
+            window.addEventListener('resize', arrangeImagesInFan);
+
+
+            // --- Lightbox Logic for ALL Galleries ---
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            const lightboxClose = document.getElementById('lightbox-close');
+            const allLightboxTriggers = document.querySelectorAll('.lightbox-trigger');
+
+            allLightboxTriggers.forEach(trigger => {
+                trigger.addEventListener('click', () => {
+                    lightboxImg.src = trigger.src;
+                    lightbox.classList.add('visible');
+                });
+            });
+
+            function closeLightbox() {
+                lightbox.classList.remove('visible');
+            }
+            lightboxClose.addEventListener('click', closeLightbox);
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox) { closeLightbox(); }
+            });
+
+
+            // --- Calendar Generation ---
+            function generateCalendar(year, month, highlightDay) {
+                const calendarContainer = document.querySelector('#calendar .grid-cols-7');
+                const date = new Date(year, month - 1, 1);
+                const daysInMonth = new Date(year, month, 0).getDate();
+                let firstDay = date.getDay();
+                if (firstDay === 0) firstDay = 6; else firstDay -= 1;
+                calendarContainer.innerHTML = `<div class="font-bold text-gray-500">T2</div><div class="font-bold text-gray-500">T3</div><div class="font-bold text-gray-500">T4</div><div class="font-bold text-gray-500">T5</div><div class="font-bold text-gray-500">T6</div><div class="font-bold text-gray-500">T7</div><div class="font-bold text-gray-500">CN</div>`;
+                for (let i = 0; i < firstDay; i++) { calendarContainer.appendChild(document.createElement('div')); }
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.textContent = day;
+                    dayCell.className = 'p-2 rounded-full';
+                    if (day === highlightDay) {
+                        dayCell.classList.add('bg-red-800', 'text-white', 'font-bold', 'ring-2', 'ring-red-300');
+                    }
+                    calendarContainer.appendChild(dayCell);
+                }
+            }
+            generateCalendar(2025, 7, 15);
+
+            // --- RSVP Form Logic + Telegram Integration ---
+            const rsvpForm = document.getElementById('rsvp-form');
+            const feedbackModal = document.getElementById('feedback-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            const BOT_TOKEN = '@thiep_cuoibot'; // <- Thay bằng token thật
+            const CHAT_ID = '8187548129:AAF0szzoDkRSxHviSWXzkjDdkv0DD-an1wM';     // <- Thay bằng chat ID (có thể là số âm nếu là nhóm)
+
+            rsvpForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(rsvpForm);
+                const name = formData.get('name');
+                const attending = formData.get('attending');
+                const messageText = formData.get('message');
+
+                const telegramMessage = `
+🎉 XÁC NHẬN THAM DỰ MỚI:
+👤 Họ tên: ${name}
+📅 Tham dự: ${attending}
+💌 Lời chúc: ${messageText || "Không có"}
+`;
+
+                try {
+                    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            chat_id: CHAT_ID,
+                            text: telegramMessage.trim()
+                        })
+                    });
+
+                    if (response.ok) {
+                        feedbackModal.classList.remove('opacity-0', 'pointer-events-none');
+                        rsvpForm.reset();
+                    } else {
+                        alert("Gửi không thành công. Vui lòng thử lại.");
+                    }
+                } catch (error) {
+                    console.error("Telegram API error:", error);
+                    alert("Lỗi kết nối đến Telegram.");
+                }
+            });
+
+            closeModalBtn.addEventListener('click', () => {
+                feedbackModal.classList.add('opacity-0', 'pointer-events-none');
+            });
+
+
+            // --- Intersection Observer for Scroll Animations ---
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            animatedElements.forEach(el => { observer.observe(el); });
+        });
+    </script>
+
+</body>
+
+</html>
